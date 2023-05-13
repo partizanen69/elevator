@@ -1,10 +1,11 @@
 import React from "react";
 import { MAX_PERSONS_PER_LIFT, tickTimeMs } from "../App.constants";
 import { Floors, LiftStatus, LiftView } from "../App.types";
-import { Lift } from "./Lift";
+import { HasQueueItem, Lift } from "./Lift";
 import { queueManager } from "./QueueManager";
+import { Direction } from "./QueueManager.types";
 
-class Dispatcher {
+export class Dispatcher {
   private timer: ReturnType<typeof setTimeout> | null = null;
 
   // TODO: think if I really need an object here
@@ -22,6 +23,10 @@ class Dispatcher {
     lifts: LiftView[],
     setLifts: React.Dispatch<React.SetStateAction<LiftView[]>>
   ): void {
+    if (this.isRunning()) {
+      return;
+    }
+
     console.log("Dispatcher consumed lifts changed");
     this.lifts = [];
 
@@ -49,7 +54,7 @@ class Dispatcher {
   }
 
   private updateLiftsState() {
-    const newLiftViews = this.lifts.map((lift) => {
+    const newLiftViews: LiftView[] = this.lifts.map((lift) => {
       return {
         id: lift.id,
         status: lift.status,
@@ -89,15 +94,14 @@ class Dispatcher {
   private tick(): void {
     console.log(`Start tick. Queue size is ${queueManager.size}`);
 
+    // check if queue item is still waiting on the floor
+    this.removeFloorAlreadyTakenByOthers();
+
     this.setIdleToMoving();
     this.unloadPassengers();
     this.takePassengers();
+    this.moveAll();
 
-    for (const lift of this.lifts) {
-      if (lift.status === LiftStatus.moving) {
-        lift.move();
-      }
-    }
     this.updateLiftsState();
     this.setFloors(this.floors);
 
@@ -106,6 +110,7 @@ class Dispatcher {
       console.log("Queue is empty. Complete emulation");
       this.stopEmulation();
     } else {
+      console.log(`We are going to start new tick`);
       this.startTick();
     }
   }
@@ -124,7 +129,9 @@ class Dispatcher {
   private getLiftsToTakePassengers(): Lift[] {
     return this.lifts.filter(
       (lift) =>
-        lift.currentFloor === lift.targetFloors[0] && lift.persons.length < MAX_PERSONS_PER_LIFT
+        !lift.isFinalDestination() && // elevator with final destination will be set to idle
+        lift.currentFloor === lift.targetFloors[0] &&
+        lift.persons.length < MAX_PERSONS_PER_LIFT
     );
   }
 
@@ -135,16 +142,20 @@ class Dispatcher {
   private setIdleToMoving(): void {
     const idleLifts = this.getIdleLifts();
     if (!Object.keys(idleLifts).length) {
-      console.log("There is no idle lifts now");
+      console.log("There is no idle lifts at the moment");
       return;
     }
 
     let queueItem = queueManager.shift();
     while (queueItem && Object.keys(idleLifts).length) {
       const closestLift = this.findClosest(queueItem.floorNum, idleLifts);
+      console.log(
+        `Queue item from floor ${queueItem.floorNum} going ${queueItem.direction} selected elevator ${closestLift.id}`
+      );
 
       closestLift.status = LiftStatus.moving;
       closestLift.addTargetFloor(queueItem.floorNum);
+      closestLift.queueItem = queueItem;
 
       delete idleLifts[closestLift.id];
       if (Object.keys(idleLifts).length) {
@@ -180,7 +191,7 @@ class Dispatcher {
   private takePassengers() {
     const lifts = this.getLiftsToTakePassengers();
     if (!lifts.length) {
-      console.log("There is no lift to do stuff on the floor");
+      console.log("No single elevator wants to take passengers");
       return;
     }
 
@@ -195,12 +206,59 @@ class Dispatcher {
   private unloadPassengers() {
     const lifts = this.getLiftsToUnloadPassengers();
     if (!lifts.length) {
-      console.log("There is no lift to unload passengers on the floor");
+      console.log("No single lift wants to unload passengers");
       return;
     }
 
     for (const lift of lifts) {
       lift.unloadPassengers();
+    }
+  }
+
+  private moveAll(): void {
+    for (const lift of this.lifts) {
+      if (lift.status !== LiftStatus.idle) {
+        lift.move();
+      }
+    }
+  }
+
+  // There is a situation when another elevator has taken persons from the floor
+  // because it was passing that floor and stopped there to unload other passengers
+  // and it was moving to the same direction so it took passengers waiting on that floor.
+  // Hence, this floor is not valid for other elevator anymore. We put it to idle so other queue item can pick it up
+  private removeFloorAlreadyTakenByOthers(): void {
+    const liftsGoingToTheFirstTarget = this.lifts.filter((lift): lift is Lift & HasQueueItem =>
+      Boolean(lift.queueItem)
+    );
+
+    for (const lift of liftsGoingToTheFirstTarget) {
+      lift.queueItem.floorNum;
+      lift.queueItem.direction;
+
+      const personsWaitingForThisLift = this.floors[lift.queueItem.floorNum].persons.filter(
+        (person) => {
+          if (
+            person.goingToFloor > lift.queueItem.floorNum &&
+            lift.queueItem.direction === Direction.up
+          ) {
+            return true;
+          } else if (
+            person.goingToFloor < lift.queueItem.floorNum &&
+            lift.queueItem.direction === Direction.down
+          ) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      );
+
+      if (!personsWaitingForThisLift.length) {
+        lift.status = LiftStatus.idle;
+        lift.targetFloors = [];
+        (lift as Lift).queueItem = null;
+      }
     }
   }
 }

@@ -1,6 +1,10 @@
 import { MAX_PERSONS_PER_LIFT } from "../App.constants";
 import { LiftStatus, LiftView, Person } from "../App.types";
-import { Direction } from "./QueueManager.types";
+import { Direction, QueueItem } from "./QueueManager.types";
+
+export interface HasQueueItem {
+  queueItem: QueueItem;
+}
 
 export class Lift implements LiftView {
   id: number;
@@ -8,6 +12,10 @@ export class Lift implements LiftView {
   currentFloor: number;
   targetFloors: number[];
   persons: Person[];
+
+  // lift holds queueitem until it reaches the QueueItem.floorNum
+  // after it takes the passengers, it is null
+  queueItem: QueueItem | null = null;
 
   private doingStuffOnTheFloor = false;
 
@@ -19,10 +27,19 @@ export class Lift implements LiftView {
     this.persons = persons;
   }
 
+  isFinalDestination(): boolean {
+    return this.targetFloors[1] === undefined && !this.queueItem;
+  }
+
   private getDirection(): Direction {
-    if (this.targetFloors[1] === undefined) {
-      throw new Error("Lift must be idle");
+    if (this.isFinalDestination()) {
+      throw new Error("Something wrong here. Check the logic");
     }
+
+    if (this.queueItem) {
+      return this.queueItem.direction;
+    }
+
     return this.currentFloor > this.targetFloors[1] ? Direction.down : Direction.up;
   }
 
@@ -52,17 +69,22 @@ export class Lift implements LiftView {
   }
 
   move(): void {
+    if (this.targetFloors[0] === this.currentFloor) {
+      // remove current target floor from the list since the lift has already visited it
+      this.targetFloors.shift();
+    }
+
     // if elevator is doing stuff on the floor i.e. loads or unloads passengers, it skips one step
     if (this.doingStuffOnTheFloor) {
       this.doingStuffOnTheFloor = false;
-      if (this.targetFloors[0] === this.currentFloor && !this.persons.length) {
+      if (!this.targetFloors.length && !this.persons.length) {
         this.status = LiftStatus.idle;
       }
       return;
     }
 
     if (!this.targetFloors.length) {
-      throw new Error(`Lift can't move`);
+      throw new Error(`Lift ${this.id} can't move`);
     }
 
     const modifier = this.currentFloor > this.targetFloors[0] ? -1 : +1;
@@ -85,13 +107,24 @@ export class Lift implements LiftView {
       }
     }
 
+    if (this.currentFloor === this.queueItem?.floorNum) {
+      this.queueItem = null;
+    }
+
+    // TODO: if some number of passengers are left on the floor because of no capacity
+    // of elevator, they must be put into queue again
+    // think if they must be at the beginning of the queue or at the end
     return personsOnTheFloor;
   }
 
   unloadPassengers(): void {
     this.setDoingStuffOnTheFloor();
+
     const initialPersons = this.persons.length;
-    this.persons = this.persons.filter((person) => person.goingToFloor === this.currentFloor);
-    console.log(`Lift ${this.id} unloaded ${initialPersons - this.persons.length}`);
+    this.persons = this.persons.filter((person) => person.goingToFloor !== this.currentFloor);
+
+    if (initialPersons > this.persons.length) {
+      console.log(`Lift ${this.id} unloaded ${initialPersons - this.persons.length}`);
+    }
   }
 }

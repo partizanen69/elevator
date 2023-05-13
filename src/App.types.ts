@@ -3,14 +3,6 @@ export enum LiftStatus {
   idle = "idle",
 }
 
-export type LiftConstructorParams = {
-  id: number;
-  status: LiftStatus;
-  currentFloor: number;
-  targetFloor: number;
-  persons: Person[];
-};
-
 export interface LiftView {
   id: number;
   status: LiftStatus;
