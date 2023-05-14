@@ -5,6 +5,7 @@ import { FloorElement } from "./Floor/Floor";
 import { GenStateBtn } from "./GenStateBtn/GenStateBtn";
 import { dispatcher } from "./GoGoBtn/Dispatcher";
 import { GoGoBtn } from "./GoGoBtn/GoGoBtn";
+import { QueueOfFloors } from "./QueueOfFloors/QueueOfFloors";
 import { StopBtn } from "./StopBtn/StopBtn";
 import { TopPanel } from "./TopPanel/TopPanel";
 
@@ -23,6 +24,7 @@ function App() {
   return (
     <>
       <div className="px-40">
+        <QueueOfFloors />
         <div className="mb-2 flex gap-x-2">
           <GenStateBtn setLifts={setLifts} setFloors={setFloors} />
           <GoGoBtn setLifts={setLifts}></GoGoBtn>

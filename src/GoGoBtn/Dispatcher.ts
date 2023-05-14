@@ -1,9 +1,12 @@
 import React from "react";
-import { MAX_PERSONS_PER_LIFT, tickTimeMs } from "../App.constants";
+import { tickTimeMs } from "../App.constants";
 import { Floors, LiftStatus, LiftView } from "../App.types";
 import { HasQueueItem, Lift } from "./Lift";
 import { queueManager } from "./QueueManager";
 import { Direction } from "./QueueManager.types";
+
+// temporary
+let tickCount = 0;
 
 export class Dispatcher {
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -92,9 +95,12 @@ export class Dispatcher {
   }
 
   private tick(): void {
+    if (tickCount > 0) {
+      // window.alert(`tick ${tickCount} completed`);
+    }
     console.log(`Start tick. Queue size is ${queueManager.size}`);
 
-    // check if queue item is still waiting on the floor
+    // check if queue item is still waiting on the floor and not taken by another passing elevator
     this.removeFloorAlreadyTakenByOthers();
 
     this.setIdleToMoving();
@@ -105,10 +111,14 @@ export class Dispatcher {
     this.updateLiftsState();
     this.setFloors(this.floors);
 
+    // temporary
+    tickCount++;
+
     // if all lifts are idle and there is nobody in the queue
     if (this.allIdle && !queueManager.size) {
       console.log("Queue is empty. Complete emulation");
       this.stopEmulation();
+      tickCount = 0; // temporary
     } else {
       console.log(`We are going to start new tick`);
       this.startTick();
@@ -126,13 +136,24 @@ export class Dispatcher {
     return result;
   }
 
-  private getLiftsToTakePassengers(): Lift[] {
-    return this.lifts.filter(
-      (lift) =>
-        !lift.isFinalDestination() && // elevator with final destination will be set to idle
-        lift.currentFloor === lift.targetFloors[0] &&
-        lift.persons.length < MAX_PERSONS_PER_LIFT
-    );
+  private getLiftsToTakePassengers(floors: Floors): Lift[] {
+    // lift does not take passengers until it reaches the destination of the first run
+    return this.lifts.filter((lift) => {
+      const isDestinationOfFirstRun: boolean =
+        Boolean(lift.queueItem) && lift.queueItem?.floorNum === lift.currentFloor;
+
+      const somePassengerReachedTarget: boolean =
+        !lift.isFinalDestination() && !lift.queueItem && lift.currentFloor === lift.targetFloors[0];
+
+      const liftIsPassingFloorWithPassengersAndHasCapacity: boolean =
+        !lift.isFinalDestination() && !lift.queueItem && lift.willingToTakePassengers(floors);
+
+      return (
+        isDestinationOfFirstRun ||
+        somePassengerReachedTarget ||
+        liftIsPassingFloorWithPassengersAndHasCapacity
+      );
+    });
   }
 
   private getLiftsToUnloadPassengers(): Lift[] {
@@ -189,7 +210,7 @@ export class Dispatcher {
   }
 
   private takePassengers() {
-    const lifts = this.getLiftsToTakePassengers();
+    const lifts = this.getLiftsToTakePassengers(this.floors);
     if (!lifts.length) {
       console.log("No single elevator wants to take passengers");
       return;
@@ -197,9 +218,13 @@ export class Dispatcher {
 
     for (const lift of lifts) {
       lift.setDoingStuffOnTheFloor();
-      this.floors[lift.currentFloor].persons = lift.loadPassengers(
+      const { personsOnTheFloor, allPassengersLoaded } = lift.loadPassengers(
         this.floors[lift.currentFloor].persons
       );
+      this.floors[lift.currentFloor].persons = personsOnTheFloor;
+      if (!allPassengersLoaded) {
+        queueManager.addInQueue(lift.currentFloor, lift.getDirection());
+      }
     }
   }
 

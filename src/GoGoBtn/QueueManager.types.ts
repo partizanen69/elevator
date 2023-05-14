@@ -8,3 +8,5 @@ export enum Direction {
   up = "up",
   down = "down",
 }
+
+export type Subscriber = (q: QueueItem[]) => void;

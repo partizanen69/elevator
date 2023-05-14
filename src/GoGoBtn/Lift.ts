@@ -1,5 +1,5 @@
 import { MAX_PERSONS_PER_LIFT } from "../App.constants";
-import { LiftStatus, LiftView, Person } from "../App.types";
+import { Floors, LiftStatus, LiftView, Person } from "../App.types";
 import { Direction, QueueItem } from "./QueueManager.types";
 
 export interface HasQueueItem {
@@ -31,13 +31,13 @@ export class Lift implements LiftView {
     return this.targetFloors[1] === undefined && !this.queueItem;
   }
 
-  private getDirection(): Direction {
-    if (this.isFinalDestination()) {
-      throw new Error("Something wrong here. Check the logic");
+  getDirection(): Direction {
+    if (this.queueItem && this.queueItem.floorNum === this.currentFloor) {
+      return this.queueItem.direction;
     }
 
-    if (this.queueItem) {
-      return this.queueItem.direction;
+    if (this.queueItem && this.queueItem.floorNum !== this.currentFloor) {
+      return this.queueItem.floorNum > this.currentFloor ? Direction.up : Direction.down;
     }
 
     return this.currentFloor > this.targetFloors[1] ? Direction.down : Direction.up;
@@ -59,12 +59,15 @@ export class Lift implements LiftView {
 
     this.targetFloors = this.targetFloors.concat(floorNum);
 
-    if (this.currentFloor < this.targetFloors[0]) {
-      // it means, elevator going up, so sort ascending
-      this.targetFloors.sort((a, b) => a - b);
+    if (this.getDirection() === Direction.up) {
+      this.targetFloors = this.targetFloors
+        .slice(0, 1)
+        .concat(this.targetFloors.slice(1).sort((a, b) => a - b));
     } else {
       // it means, elevator going down, so sort descending
-      this.targetFloors.sort((a, b) => b - a);
+      this.targetFloors = this.targetFloors
+        .slice(0, 1)
+        .concat(this.targetFloors.slice(1).sort((a, b) => b - a));
     }
   }
 
@@ -91,7 +94,10 @@ export class Lift implements LiftView {
     this.currentFloor += modifier;
   }
 
-  loadPassengers(personsOnTheFloor: Person[]): Person[] {
+  loadPassengers(personsOnTheFloor: Person[]): {
+    personsOnTheFloor: Person[];
+    allPassengersLoaded: boolean;
+  } {
     const liftDirection = this.getDirection();
 
     for (let i = personsOnTheFloor.length - 1; i >= 0; i--) {
@@ -114,7 +120,10 @@ export class Lift implements LiftView {
     // TODO: if some number of passengers are left on the floor because of no capacity
     // of elevator, they must be put into queue again
     // think if they must be at the beginning of the queue or at the end
-    return personsOnTheFloor;
+
+    const allPassengersLoaded: boolean = this.checkIfAllPassengersLoaded(personsOnTheFloor);
+
+    return { personsOnTheFloor, allPassengersLoaded };
   }
 
   unloadPassengers(): void {
@@ -126,5 +135,32 @@ export class Lift implements LiftView {
     if (initialPersons > this.persons.length) {
       console.log(`Lift ${this.id} unloaded ${initialPersons - this.persons.length}`);
     }
+  }
+
+  private checkIfAllPassengersLoaded(personsOnTheFloor: Person[]): boolean {
+    const liftDirection = this.getDirection();
+
+    const allPassengersLoaded: boolean = personsOnTheFloor.reduce<boolean>((acc, person) => {
+      if (this.getPersonDirection(person) === liftDirection) {
+        acc = false;
+      }
+      return acc;
+    }, true);
+
+    return allPassengersLoaded;
+  }
+
+  hasCapacity(): boolean {
+    return this.persons.length < MAX_PERSONS_PER_LIFT;
+  }
+
+  willingToTakePassengers(floors: Floors): boolean {
+    const liftDirection = this.getDirection();
+
+    const passengersPassengersGoingSameDirection = floors[this.currentFloor].persons.some(
+      (person) => this.getPersonDirection(person) === liftDirection
+    );
+
+    return this.hasCapacity() && passengersPassengersGoingSameDirection;
   }
 }

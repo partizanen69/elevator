@@ -1,6 +1,7 @@
 import { Button } from "antd";
 import { FC } from "react";
 import { Floors, LiftView } from "../App.types";
+import { queueManager } from "../GoGoBtn/QueueManager";
 import useGenStateBtn from "./hooks/useGenStateBtn";
 
 type GenStateBtnProps = {
@@ -14,6 +15,7 @@ export const GenStateBtn: FC<GenStateBtnProps> = ({ setLifts, setFloors }) => {
   return (
     <Button
       onClick={() => {
+        queueManager.flushQueue();
         setLifts(generateRandomLifts());
         setFloors(generateRandomFloors());
       }}

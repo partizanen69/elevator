@@ -1,8 +1,9 @@
 import { Person } from "../App.types";
-import { Direction, QueueItem } from "./QueueManager.types";
+import { Direction, QueueItem, Subscriber } from "./QueueManager.types";
 
 export class QueueManager {
   private queue: QueueItem[] = [];
+  private subscribers: Set<Subscriber> = new Set();
 
   constructor() {
     console.log(`Initialize ${QueueManager.name}`);
@@ -30,10 +31,14 @@ export class QueueManager {
         timeRequested: new Date(),
       });
     }
+
+    this.notifySubscribers();
   }
 
   shift(): QueueItem | undefined {
-    return this.queue.shift();
+    const item = this.queue.shift();
+    this.notifySubscribers();
+    return item;
   }
 
   handlePersonRemovedFromTheFloor(floorNum: number, newPersons: Person[]): void {
@@ -46,6 +51,7 @@ export class QueueManager {
       );
       if (idxToDelete > -1) {
         this.queue.splice(idxToDelete, 1);
+        this.notifySubscribers();
       }
     }
 
@@ -55,6 +61,7 @@ export class QueueManager {
       );
       if (idxToDelete > -1) {
         this.queue.splice(idxToDelete, 1);
+        this.notifySubscribers();
       }
     }
   }
@@ -77,6 +84,30 @@ export class QueueManager {
     }
     if (down) {
       this.addInQueue(floorNum, Direction.down);
+    }
+
+    if (up || down) {
+      this.notifySubscribers();
+    }
+  }
+
+  flushQueue(): void {
+    this.queue = [];
+    this.notifySubscribers();
+  }
+
+  subscribeToQueueChange(cb: Subscriber): QueueItem[] {
+    console.log(`${QueueManager.name} registered new subscriber`);
+    this.subscribers.add(cb);
+    return this.queue;
+  }
+  unsubscribeFromQueueChange(cb: Subscriber) {
+    console.log(`${QueueManager.name} removed subscriber`);
+    this.subscribers.delete(cb);
+  }
+  private notifySubscribers(): void {
+    for (const subscriber of Array.from(this.subscribers)) {
+      subscriber(this.queue);
     }
   }
 }
