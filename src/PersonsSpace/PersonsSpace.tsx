@@ -1,5 +1,6 @@
 import { FC } from "react";
 import { Floor, Floors } from "../App.types";
+import { queueManager } from "../GoGoBtn/QueueManager";
 
 type PersonsSpaceProps = {
   floor: Floor;
@@ -15,16 +16,18 @@ export const PersonsSpace: FC<PersonsSpaceProps> = ({ floor, setFloors }) => {
       ...prevState,
       ...{ [floorNum]: { floorNum, persons: newPersons } },
     }));
+    // if more cases like this, I would think about mediator class for handling similar events
+    queueManager.handlePersonRemovedFromTheFloor(floorNum, newPersons);
   };
 
   return (
-    <div className="space-for-persons flex w-28 items-end gap-2">
+    <div className="space-for-persons flex w-28 flex-wrap items-end gap-1 leading-none">
       {floor.persons.length
         ? floor.persons.map((person, idx) => {
             return (
               <div
                 key={idx}
-                className="person h-[70%] cursor-pointer border border-solid border-black p-[1px]"
+                className="person cursor-pointer border border-solid border-black "
                 title={`I am a person and I am going to ${person.goingToFloor} floor`}
                 onClick={() => removePerson(idx)}
               >

@@ -6,7 +6,7 @@ export const FLOORS = 15;
 
 export const LIFTS_PER_FLOOR = 4;
 
-export const MAX_PERSONS_PER_FLOOR = 4;
+export const MAX_PERSONS_PER_FLOOR = 10;
 
 export const MAX_PERSONS_PER_LIFT = 4;
 

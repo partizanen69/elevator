@@ -1,3 +1,4 @@
+import { Person } from "../App.types";
 import { Direction, QueueItem } from "./QueueManager.types";
 
 export class QueueManager {
@@ -33,6 +34,29 @@ export class QueueManager {
 
   shift(): QueueItem | undefined {
     return this.queue.shift();
+  }
+
+  handlePersonRemovedFromTheFloor(floorNum: number, newPersons: Person[]): void {
+    const personsGoingUp = newPersons.filter((person) => person.goingToFloor > floorNum);
+    const personsGoingDown = newPersons.filter((person) => person.goingToFloor < floorNum);
+
+    if (!personsGoingUp.length) {
+      const idxToDelete = this.queue.findIndex(
+        (queueItem) => queueItem.direction === Direction.up && queueItem.floorNum === floorNum
+      );
+      if (idxToDelete > -1) {
+        this.queue.splice(idxToDelete, 1);
+      }
+    }
+
+    if (!personsGoingDown.length) {
+      const idxToDelete = this.queue.findIndex(
+        (queueItem) => queueItem.direction === Direction.down && queueItem.floorNum === floorNum
+      );
+      if (idxToDelete > -1) {
+        this.queue.splice(idxToDelete, 1);
+      }
+    }
   }
 }
 
