@@ -117,10 +117,6 @@ export class Lift implements LiftView {
       this.queueItem = null;
     }
 
-    // TODO: if some number of passengers are left on the floor because of no capacity
-    // of elevator, they must be put into queue again
-    // think if they must be at the beginning of the queue or at the end
-
     const allPassengersLoaded: boolean = this.checkIfAllPassengersLoaded(personsOnTheFloor);
 
     return { personsOnTheFloor, allPassengersLoaded };

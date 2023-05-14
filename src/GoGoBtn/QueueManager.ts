@@ -22,14 +22,14 @@ export class QueueManager {
         `Floor ${floorNum} going ${direction} is already in the queue. Continue waiting...`
       );
     } else {
-      console.log(
-        `Adding floor ${floorNum} going ${direction} to the queue. Current queue size is ${this.queue.length}`
-      );
       this.queue.push({
         floorNum,
         direction,
         timeRequested: new Date(),
       });
+      console.log(
+        `Added floor ${floorNum} going ${direction} to the queue. Current queue size is ${this.queue.length}`
+      );
     }
 
     this.notifySubscribers();
@@ -38,6 +38,9 @@ export class QueueManager {
   shift(): QueueItem | undefined {
     const item = this.queue.shift();
     this.notifySubscribers();
+    console.warn(
+      `Item ${item?.floorNum} going ${item?.direction} removed from the queue. Queue size ${this.queue.length}`
+    );
     return item;
   }
 

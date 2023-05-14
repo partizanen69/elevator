@@ -1,8 +1,6 @@
-- add bonus functionality:
-  Bonus: Add functionality which can initialize with all elevators as empty on the
-  ground floor. Then let it randomly add a passenger at random floor with random
-  destination. it should trigger every 5 seconds and will display the final status of
-  all elevators.
+- remove button "stop emulation" user should reload the page if he wants to restart
+  - so no need in subscriptions for end emulation
+- add check if emulation is running on generate random state
 
 - do final refactoring
 

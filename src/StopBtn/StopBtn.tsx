@@ -1,10 +1,11 @@
 import { Button } from "antd";
 import { FC } from "react";
-import { dispatcher } from "../GoGoBtn/Dispatcher";
+import { emulator } from "../Emulator/Emulator";
 
 export const StopBtn: FC = () => {
   const stopEmulation = () => {
-    dispatcher.stopEmulation();
+    emulator.stopStaticEmulation();
+    emulator.stopDynamicEmulation();
   };
   return <Button onClick={stopEmulation}>Stop emulation</Button>;
 };

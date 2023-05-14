@@ -6,10 +6,13 @@ export const QueueOfFloors: FC = () => {
   const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
 
   useEffect(() => {
-    const currentItems = queueManager.subscribeToQueueChange(setQueueItems);
+    const cb = (q: QueueItem[]) => {
+      setQueueItems(q);
+    };
+    const currentItems = queueManager.subscribeToQueueChange(cb);
     setQueueItems(currentItems);
     return () => {
-      queueManager.unsubscribeFromQueueChange(setQueueItems);
+      queueManager.unsubscribeFromQueueChange(cb);
     };
   }, []);
 

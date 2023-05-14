@@ -5,17 +5,15 @@ import { HasQueueItem, Lift } from "./Lift";
 import { queueManager } from "./QueueManager";
 import { Direction } from "./QueueManager.types";
 
-// temporary
-let tickCount = 0;
-
 export class Dispatcher {
   private timer: ReturnType<typeof setTimeout> | null = null;
 
-  // TODO: think if I really need an object here
   private lifts: Lift[] = [];
+  // It would be nice to add mediator instead of setState func
   private setLifts!: React.Dispatch<React.SetStateAction<LiftView[]>>;
 
   private floors: Floors = {};
+  // It would be nice to add mediator instead of setState func
   private setFloors!: React.Dispatch<React.SetStateAction<Floors>>;
 
   constructor() {
@@ -47,6 +45,7 @@ export class Dispatcher {
 
   consumeFloorsChanged(floors: Floors, setFloors: React.Dispatch<React.SetStateAction<Floors>>) {
     console.log(`Dispatcher consumed floors changed`);
+    this.floors = {};
     for (const floor of Object.values(floors)) {
       this.floors[floor.floorNum] = {
         ...floor,
@@ -73,9 +72,14 @@ export class Dispatcher {
     return Boolean(this.timer);
   }
 
-  startEmulation(): void {
+  start(): void {
     if (!queueManager.size) {
       window.alert("There is nobody in queue");
+      return;
+    }
+
+    if (this.isRunning()) {
+      window.alert("Emulation is already running");
       return;
     }
     this.startTick();
@@ -95,11 +99,6 @@ export class Dispatcher {
   }
 
   private tick(): void {
-    if (tickCount > 0) {
-      // window.alert(`tick ${tickCount} completed`);
-    }
-    console.log(`Start tick. Queue size is ${queueManager.size}`);
-
     // check if queue item is still waiting on the floor and not taken by another passing elevator
     this.removeFloorAlreadyTakenByOthers();
 
@@ -111,14 +110,10 @@ export class Dispatcher {
     this.updateLiftsState();
     this.setFloors(this.floors);
 
-    // temporary
-    tickCount++;
-
     // if all lifts are idle and there is nobody in the queue
     if (this.allIdle && !queueManager.size) {
       console.log("Queue is empty. Complete emulation");
       this.stopEmulation();
-      tickCount = 0; // temporary
     } else {
       console.log(`We are going to start new tick`);
       this.startTick();
@@ -167,17 +162,22 @@ export class Dispatcher {
       return;
     }
 
+    if (queueManager.size === 0) {
+      console.log(`There is no items in the queue at the moment`);
+      return;
+    }
+
     let queueItem = queueManager.shift();
     while (queueItem && Object.keys(idleLifts).length) {
       const closestLift = this.findClosest(queueItem.floorNum, idleLifts);
-      console.log(
-        `Queue item from floor ${queueItem.floorNum} going ${queueItem.direction} selected elevator ${closestLift.id}`
-      );
 
       closestLift.status = LiftStatus.moving;
       closestLift.addTargetFloor(queueItem.floorNum);
       closestLift.queueItem = queueItem;
 
+      console.log(
+        `Queue item from floor ${queueItem.floorNum} going ${queueItem.direction} selected elevator ${closestLift.id}`
+      );
       delete idleLifts[closestLift.id];
       if (Object.keys(idleLifts).length) {
         queueItem = queueManager.shift();

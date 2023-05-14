@@ -8,6 +8,14 @@ type GoGoBtnProps = {
 };
 
 export const GoGoBtn: FC<GoGoBtnProps> = () => {
-  const { goGo } = useGoGoBtn();
-  return <Button onClick={goGo}>Start emulation</Button>;
+  const { startStaticEmulation, disabled } = useGoGoBtn();
+  return (
+    <Button
+      disabled={disabled} // TODO: think about removing it
+      onClick={startStaticEmulation}
+      title="Emulate with current state and no subsequent changes"
+    >
+      Start static emulation
+    </Button>
+  );
 };
