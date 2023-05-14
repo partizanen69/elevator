@@ -1,6 +1,7 @@
 import shuffle from "lodash/shuffle";
 import { FLOORS, FLOORS_ARR, LIFTS_PER_FLOOR } from "../../App.constants";
 import { Floor, Floors, LiftStatus, LiftView } from "../../App.types";
+import { queueManager } from "../../GoGoBtn/QueueManager";
 import { generateRandomPersons } from "../utils";
 
 const useGenStateBtn = () => {
@@ -30,6 +31,11 @@ const useGenStateBtn = () => {
       const floor: Floor = floorsWithPersons.has(floorNum)
         ? { floorNum, persons: generateRandomPersons(floorNum) }
         : { floorNum, persons: [] };
+
+      if (floor.persons.length) {
+        queueManager.addBunchOfPersonsToTheQueue(floor.floorNum, floor.persons);
+      }
+
       acc[floorNum] = floor;
       return acc;
     }, {});

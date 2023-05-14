@@ -58,6 +58,27 @@ export class QueueManager {
       }
     }
   }
+
+  addBunchOfPersonsToTheQueue(floorNum: number, persons: Person[]): void {
+    let up = false;
+    let down = false;
+
+    for (const person of persons) {
+      if (person.goingToFloor > floorNum && !up) {
+        up = true;
+      }
+      if (person.goingToFloor < floorNum && !down) {
+        down = true;
+      }
+    }
+
+    if (up) {
+      this.addInQueue(floorNum, Direction.up);
+    }
+    if (down) {
+      this.addInQueue(floorNum, Direction.down);
+    }
+  }
 }
 
 export const queueManager = new QueueManager();
