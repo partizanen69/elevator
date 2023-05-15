@@ -1,5 +1,5 @@
 import shuffle from "lodash/shuffle";
-import { FLOORS, FLOORS_ARR, LIFTS_PER_FLOOR } from "../../App.constants";
+import { EMULATION_RUNNING_MSG, FLOORS, FLOORS_ARR, LIFTS_PER_FLOOR } from "../../App.constants";
 import { Floor, Floors, LiftStatus, LiftView } from "../../App.types";
 import { emulator } from "../../core/Emulator";
 import { queueManager } from "../../core/QueueManager";
@@ -47,7 +47,7 @@ const useGenStateBtn = ({ setFloors, setLifts }: GenStateBtnProps) => {
 
   const generateRandomState = () => {
     if (emulator.isRunning()) {
-      window.alert("There is existing emulation running");
+      window.alert(EMULATION_RUNNING_MSG);
       return;
     }
     queueManager.flushQueue();

@@ -1,9 +1,10 @@
 import { Person } from "../App.types";
-import { Direction, QueueItem, Subscriber } from "./QueueManager.types";
+import { mediator } from "./Mediator";
+import { Topic } from "./Mediator.types";
+import { Direction, QueueItem } from "./QueueManager.types";
 
 export class QueueManager {
   private queue: QueueItem[] = [];
-  private subscribers: Set<Subscriber> = new Set();
 
   constructor() {
     console.log(`Initialize ${QueueManager.name}`);
@@ -32,12 +33,12 @@ export class QueueManager {
       );
     }
 
-    this.notifySubscribers();
+    mediator.publish(Topic.QueueManagerQueueChanged, this.queue);
   }
 
   shift(): QueueItem | undefined {
     const item = this.queue.shift();
-    this.notifySubscribers();
+    mediator.publish(Topic.QueueManagerQueueChanged, this.queue);
     console.warn(
       `Item ${item?.floorNum} going ${item?.direction} removed from the queue. Queue size ${this.queue.length}`
     );
@@ -54,7 +55,7 @@ export class QueueManager {
       );
       if (idxToDelete > -1) {
         this.queue.splice(idxToDelete, 1);
-        this.notifySubscribers();
+        mediator.publish(Topic.QueueManagerQueueChanged, this.queue);
       }
     }
 
@@ -64,7 +65,7 @@ export class QueueManager {
       );
       if (idxToDelete > -1) {
         this.queue.splice(idxToDelete, 1);
-        this.notifySubscribers();
+        mediator.publish(Topic.QueueManagerQueueChanged, this.queue);
       }
     }
   }
@@ -90,28 +91,17 @@ export class QueueManager {
     }
 
     if (up || down) {
-      this.notifySubscribers();
+      mediator.publish(Topic.QueueManagerQueueChanged, this.queue);
     }
   }
 
   flushQueue(): void {
     this.queue = [];
-    this.notifySubscribers();
+    mediator.publish(Topic.QueueManagerQueueChanged, this.queue);
   }
 
-  subscribeToQueueChange(cb: Subscriber): QueueItem[] {
-    console.log(`${QueueManager.name} registered new subscriber`);
-    this.subscribers.add(cb);
-    return this.queue;
-  }
-  unsubscribeFromQueueChange(cb: Subscriber) {
-    console.log(`${QueueManager.name} removed subscriber`);
-    this.subscribers.delete(cb);
-  }
-  private notifySubscribers(): void {
-    for (const subscriber of Array.from(this.subscribers)) {
-      subscriber(this.queue);
-    }
+  getItems(): readonly QueueItem[] {
+    return this.queue.map((item) => ({ ...item }));
   }
 }
 

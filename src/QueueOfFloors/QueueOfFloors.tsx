@@ -1,18 +1,19 @@
 import { FC, useEffect, useState } from "react";
+import { mediator } from "../core/Mediator";
+import { Topic } from "../core/Mediator.types";
 import { queueManager } from "../core/QueueManager";
 import { QueueItem } from "../core/QueueManager.types";
 
 export const QueueOfFloors: FC = () => {
-  const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
+  const [queueItems, setQueueItems] = useState<readonly QueueItem[]>(queueManager.getItems());
 
   useEffect(() => {
     const cb = (q: QueueItem[]) => {
       setQueueItems(q);
     };
-    const currentItems = queueManager.subscribeToQueueChange(cb);
-    setQueueItems(currentItems);
+    mediator.subscribe(Topic.QueueManagerQueueChanged, cb);
     return () => {
-      queueManager.unsubscribeFromQueueChange(cb);
+      mediator.unsubscribe(Topic.QueueManagerQueueChanged, cb);
     };
   }, []);
 

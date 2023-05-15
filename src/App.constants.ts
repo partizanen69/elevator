@@ -59,3 +59,5 @@ for (const floor of Object.values(INITIAL_FLOORS)) {
     );
   }
 }
+
+export const EMULATION_RUNNING_MSG = "There is existing emulation running";

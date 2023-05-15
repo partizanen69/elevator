@@ -64,8 +64,7 @@ export class Emulator {
     // let the first person be somewhere on the top floor
     const floorNum = Math.ceil(Math.random() * 5) + FLOORS - 5;
     for (const floor of Object.values(this.floors)) floor.persons = [];
-    const { person } = this.addRandomPersonToRandomFloor(floorNum);
-    await sleep(0); // wait for the state to change
+    const { person } = await this.addRandomPersonToRandomFloor(floorNum);
 
     queueManager.flushQueue();
     queueManager.addInQueue(floorNum, getPersonDirection(floorNum, person.goingToFloor));
@@ -82,7 +81,9 @@ export class Emulator {
     }
   }
 
-  addRandomPersonToRandomFloor(floorNum?: number): { person: Person; floorNum: number } {
+  async addRandomPersonToRandomFloor(
+    floorNum?: number
+  ): Promise<{ person: Person; floorNum: number }> {
     if (!floorNum) {
       floorNum = Math.ceil(Math.random() * FLOORS);
     }
@@ -92,19 +93,21 @@ export class Emulator {
     this.floors[floorNum].persons.push(person);
 
     this.setFloors(this.floors);
+    await sleep(0); // wait for the state to change
 
     return { person, floorNum };
   }
 
   emulateNewPersonAfterTimeout() {
-    this.timer = setTimeout(() => {
+    this.timer = setTimeout(async () => {
+      // TODO: do something with this
       if (!dispatcher.isRunning()) {
         console.log("Dispatcher completed with all passengers. Stopping dynamic emulation");
         // this.stopDynamicEmulation();
         return;
       }
 
-      const { person, floorNum } = this.addRandomPersonToRandomFloor();
+      const { person, floorNum } = await this.addRandomPersonToRandomFloor();
       queueManager.addInQueue(floorNum, getPersonDirection(floorNum, person.goingToFloor));
 
       if (this.timer) {

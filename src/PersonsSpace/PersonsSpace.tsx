@@ -1,5 +1,7 @@
 import { FC } from "react";
+import { EMULATION_RUNNING_MSG } from "../App.constants";
 import { Floor, Floors } from "../App.types";
+import { emulator } from "../core/Emulator";
 import { queueManager } from "../core/QueueManager";
 
 type PersonsSpaceProps = {
@@ -11,6 +13,10 @@ export const PersonsSpace: FC<PersonsSpaceProps> = ({ floor, setFloors }) => {
   const { persons, floorNum } = floor;
 
   const removePerson = (personIdx: number): void => {
+    if (emulator.isRunning()) {
+      window.alert(EMULATION_RUNNING_MSG);
+      return;
+    }
     const newPersons = persons.slice(0, personIdx).concat(persons.slice(personIdx + 1));
     setFloors((prevState) => ({
       ...prevState,

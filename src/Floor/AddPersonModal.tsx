@@ -1,7 +1,8 @@
 import { Button, InputNumber } from "antd";
 import { FC, useState } from "react";
-import { FLOORS, MAX_PERSONS_PER_FLOOR } from "../App.constants";
+import { EMULATION_RUNNING_MSG, FLOORS, MAX_PERSONS_PER_FLOOR } from "../App.constants";
 import { Floor, Floors } from "../App.types";
+import { emulator } from "../core/Emulator";
 import { queueManager } from "../core/QueueManager";
 import { getPersonDirection } from "../utils";
 
@@ -32,6 +33,11 @@ export const AddPersonModal: FC<AddPersonModalProps> = ({ floor, setPopoverOpen,
 
     if (persons.length >= MAX_PERSONS_PER_FLOOR) {
       window.alert("Floor is too crowded. There is no place for more then 4 persons");
+      return;
+    }
+
+    if (emulator.isRunning()) {
+      window.alert(EMULATION_RUNNING_MSG);
       return;
     }
 

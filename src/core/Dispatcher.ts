@@ -1,6 +1,7 @@
 import React from "react";
 import { tickTimeMs } from "../App.constants";
 import { Floors, LiftStatus, LiftView } from "../App.types";
+import { sleep } from "../utils";
 import { HasQueueItem, Lift } from "./Lift";
 import { queueManager } from "./QueueManager";
 import { Direction } from "./QueueManager.types";
@@ -106,7 +107,7 @@ export class Dispatcher {
     }
   }
 
-  private tick(): void {
+  private async tick(): Promise<void> {
     // check if queue item is still waiting on the floor and not taken by another passing elevator
     this.removeFloorAlreadyTakenByOthers();
 
@@ -117,6 +118,7 @@ export class Dispatcher {
 
     this.updateLiftsState();
     this.setFloors(this.floors);
+    await sleep(0);
 
     // if all lifts are idle and there is nobody in the queue
     if (this.allIdle && !queueManager.size) {

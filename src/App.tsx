@@ -30,7 +30,7 @@ function App() {
         <div className="mb-2 flex gap-x-2">
           <GenStateBtn setLifts={setLifts} setFloors={setFloors} />
           <GoStaticBtn setLifts={setLifts}></GoStaticBtn>
-          <GoDynamicBtn lifts={lifts} floors={floors} setLifts={setLifts} setFloors={setFloors} />
+          <GoDynamicBtn lifts={lifts} setLifts={setLifts} />
         </div>
         <div className="building flex flex-col">
           <TopPanel lifts={lifts} setLifts={setLifts} />

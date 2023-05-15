@@ -1,6 +1,6 @@
 import { Button } from "antd";
 import { FC, useEffect, useState } from "react";
-import { Floors, LiftView } from "../App.types";
+import { LiftView } from "../App.types";
 import { emulator } from "../core/Emulator";
 import { mediator } from "../core/Mediator";
 import { Topic } from "../core/Mediator.types";
@@ -8,8 +8,6 @@ import { Topic } from "../core/Mediator.types";
 type GoDynamicBtnProps = {
   lifts: LiftView[];
   setLifts: React.Dispatch<React.SetStateAction<LiftView[]>>;
-  floors: Floors;
-  setFloors: React.Dispatch<React.SetStateAction<Floors>>;
 };
 
 export const GoDynamicBtn: FC<GoDynamicBtnProps> = ({ lifts, setLifts }) => {
