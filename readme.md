@@ -1,4 +1,14 @@
-- add documentation describing how algorithm works
+## What is this?
+
+## Where to play with it?
+
+## How to run it locally and play with it
+
+```
+npm ci
+```
+
+This
 
 ## After generating random state you may see unexpected behavior
 
