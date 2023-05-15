@@ -1,10 +1,12 @@
 import shuffle from "lodash/shuffle";
 import { FLOORS, FLOORS_ARR, LIFTS_PER_FLOOR } from "../../App.constants";
 import { Floor, Floors, LiftStatus, LiftView } from "../../App.types";
+import { emulator } from "../../core/Emulator";
 import { queueManager } from "../../core/QueueManager";
 import { generateRandomPersons } from "../../utils";
+import { GenStateBtnProps } from "../GenStateBtn.types";
 
-const useGenStateBtn = () => {
+const useGenStateBtn = ({ setFloors, setLifts }: GenStateBtnProps) => {
   const generateRandomLifts = (): LiftView[] => {
     const result: LiftView[] = [];
 
@@ -43,9 +45,18 @@ const useGenStateBtn = () => {
     return floors;
   };
 
+  const generateRandomState = () => {
+    if (emulator.isRunning()) {
+      window.alert("There is existing emulation running");
+      return;
+    }
+    queueManager.flushQueue();
+    setLifts(generateRandomLifts());
+    setFloors(generateRandomFloors());
+  };
+
   return {
-    generateRandomLifts,
-    generateRandomFloors,
+    generateRandomState,
   };
 };
 

@@ -1,5 +1,3 @@
-- add check if emulation is running on generate random state
-
 - do final refactoring
 
   - refactor file locations e.g. move core logic into core folder

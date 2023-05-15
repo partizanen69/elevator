@@ -3,12 +3,12 @@ import { FLOORS } from "../App.constants";
 import { Floors, LiftStatus, LiftView, Person } from "../App.types";
 import { dispatcher } from "../core/Dispatcher";
 import { queueManager } from "../core/QueueManager";
-import { generateRandomPerson, getPersonDirection } from "../utils";
+import { generateRandomPerson, getPersonDirection, sleep } from "../utils";
 import { mediator } from "./Mediator";
 import { Topic } from "./Mediator.types";
 
 export class Emulator {
-  private dynamicEmulationTimer: ReturnType<typeof setTimeout> | null = null;
+  private timer: ReturnType<typeof setTimeout> | null = null;
 
   private floors: Floors = {};
   private setFloors!: React.Dispatch<React.SetStateAction<Floors>>;
@@ -26,15 +26,13 @@ export class Emulator {
   }
 
   isRunning(): boolean {
-    return dispatcher.isRunning() || Boolean(this.dynamicEmulationTimer);
+    return dispatcher.isRunning() || Boolean(this.timer);
   }
 
   startStaticEmulation() {
-    const stopCallback = (): void => {
-      mediator.publish(Topic.EmulatorStop);
-    };
-
-    const started = dispatcher.start(stopCallback);
+    const started = dispatcher.start((): void => {
+      this.stopEmulation();
+    });
 
     if (started) {
       mediator.publish(Topic.EmulatorStart);
@@ -43,7 +41,7 @@ export class Emulator {
     }
   }
 
-  startDynamicEmulation({
+  async startDynamicEmulation({
     lifts,
     setLifts,
   }: {
@@ -61,11 +59,13 @@ export class Emulator {
         };
       })
     );
+    await sleep(0); // wait for the state to change
 
     // let the first person be somewhere on the top floor
     const floorNum = Math.ceil(Math.random() * 5) + FLOORS - 5;
     for (const floor of Object.values(this.floors)) floor.persons = [];
     const { person } = this.addRandomPersonToRandomFloor(floorNum);
+    await sleep(0); // wait for the state to change
 
     queueManager.flushQueue();
     queueManager.addInQueue(floorNum, getPersonDirection(floorNum, person.goingToFloor));
@@ -97,7 +97,7 @@ export class Emulator {
   }
 
   emulateNewPersonAfterTimeout() {
-    this.dynamicEmulationTimer = setTimeout(() => {
+    this.timer = setTimeout(() => {
       if (!dispatcher.isRunning()) {
         console.log("Dispatcher completed with all passengers. Stopping dynamic emulation");
         // this.stopDynamicEmulation();
@@ -107,13 +107,21 @@ export class Emulator {
       const { person, floorNum } = this.addRandomPersonToRandomFloor();
       queueManager.addInQueue(floorNum, getPersonDirection(floorNum, person.goingToFloor));
 
-      if (this.dynamicEmulationTimer) {
-        clearTimeout(this.dynamicEmulationTimer);
-        this.dynamicEmulationTimer = null;
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
       }
 
       this.emulateNewPersonAfterTimeout();
     }, 5000);
+  }
+
+  private stopEmulation() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+    mediator.publish(Topic.EmulatorStop);
   }
 }
 

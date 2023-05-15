@@ -100,12 +100,10 @@ export class Dispatcher {
     }
     this.stopSubscribers = new Set();
 
-    if (this.timer === null) {
-      return;
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
     }
-
-    clearTimeout(this.timer);
-    this.timer = null;
   }
 
   private tick(): void {

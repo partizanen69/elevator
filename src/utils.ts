@@ -33,3 +33,9 @@ export const generateRandomPerson = (floorNum: number, floorsNotCurrent?: number
 
   return { goingToFloor: floorsNotCurrent[floorNotCurrentIdx] };
 };
+
+export const sleep = (timeMs: number): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, timeMs);
+  });
+};

@@ -1,26 +1,10 @@
 import { Button } from "antd";
 import { FC } from "react";
-import { Floors, LiftView } from "../App.types";
-import { queueManager } from "../core/QueueManager";
+import { GenStateBtnProps } from "./GenStateBtn.types";
 import useGenStateBtn from "./hooks/useGenStateBtn";
 
-type GenStateBtnProps = {
-  setLifts: (lifts: LiftView[]) => void;
-  setFloors: (floors: Floors) => void;
-};
-
 export const GenStateBtn: FC<GenStateBtnProps> = ({ setLifts, setFloors }) => {
-  const { generateRandomLifts, generateRandomFloors } = useGenStateBtn();
+  const { generateRandomState } = useGenStateBtn({ setLifts, setFloors });
 
-  return (
-    <Button
-      onClick={() => {
-        queueManager.flushQueue();
-        setLifts(generateRandomLifts());
-        setFloors(generateRandomFloors());
-      }}
-    >
-      Generate random state
-    </Button>
-  );
+  return <Button onClick={generateRandomState}>Generate random state</Button>;
 };
