@@ -1,10 +1,4 @@
-- do final refactoring
-
-  - refactor file locations e.g. move core logic into core folder
-
 - add documentation describing how algorithm works
-
-- depending on time left, think about mediator to handle person removed
 
 ## After generating random state you may see unexpected behavior
 

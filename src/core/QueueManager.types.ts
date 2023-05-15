@@ -1,3 +1,5 @@
+import { Person } from "../App.types";
+
 export type QueueItem = {
   direction: Direction;
   timeRequested: Date;
@@ -10,3 +12,5 @@ export enum Direction {
 }
 
 export type Subscriber = (q: QueueItem[]) => void;
+
+export type PersonRemovedPayload = { floorNum: number; newPersons: Person[] };

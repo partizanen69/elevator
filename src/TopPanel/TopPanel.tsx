@@ -1,7 +1,8 @@
 import { Button } from "antd";
 import { FC } from "react";
-import { FLOORS } from "../App.constants";
+import { EMULATION_RUNNING_MSG, FLOORS } from "../App.constants";
 import { LiftView } from "../App.types";
+import { emulator } from "../core/Emulator";
 
 type TopPanelProps = {
   lifts: LiftView[];
@@ -10,6 +11,11 @@ type TopPanelProps = {
 
 export const TopPanel: FC<TopPanelProps> = ({ lifts, setLifts }) => {
   const move = (liftId: number, modifier: -1 | 1): void => {
+    if (emulator.isRunning()) {
+      window.alert(EMULATION_RUNNING_MSG);
+      return;
+    }
+
     const lift = lifts[liftId];
     const newFloor = lift.currentFloor + modifier;
     if (newFloor < 1 || newFloor > FLOORS) {

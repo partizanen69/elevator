@@ -2,7 +2,9 @@ import { FC } from "react";
 import { EMULATION_RUNNING_MSG } from "../App.constants";
 import { Floor, Floors } from "../App.types";
 import { emulator } from "../core/Emulator";
-import { queueManager } from "../core/QueueManager";
+import { mediator } from "../core/Mediator";
+import { Topic } from "../core/Mediator.types";
+import { PersonRemovedPayload } from "../core/QueueManager.types";
 
 type PersonsSpaceProps = {
   floor: Floor;
@@ -22,8 +24,10 @@ export const PersonsSpace: FC<PersonsSpaceProps> = ({ floor, setFloors }) => {
       ...prevState,
       ...{ [floorNum]: { floorNum, persons: newPersons } },
     }));
-    // if more cases like this, I would think about mediator class for handling similar events
-    queueManager.handlePersonRemovedFromTheFloor(floorNum, newPersons);
+    mediator.publish<PersonRemovedPayload>(Topic.PersonSpacePersonRemoved, {
+      floorNum,
+      newPersons,
+    });
   };
 
   return (

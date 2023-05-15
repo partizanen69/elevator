@@ -1,17 +1,27 @@
 import { Person } from "../App.types";
 import { mediator } from "./Mediator";
 import { Topic } from "./Mediator.types";
-import { Direction, QueueItem } from "./QueueManager.types";
+import { Direction, PersonRemovedPayload, QueueItem } from "./QueueManager.types";
 
 export class QueueManager {
   private queue: QueueItem[] = [];
 
   constructor() {
     console.log(`Initialize ${QueueManager.name}`);
+    this.initializeSubscriptions();
   }
 
   get size(): number {
     return this.queue.length;
+  }
+
+  initializeSubscriptions(): void {
+    mediator.subscribe<PersonRemovedPayload>(
+      Topic.PersonSpacePersonRemoved,
+      ({ floorNum, newPersons }) => {
+        this.handlePersonRemovedFromTheFloor(floorNum, newPersons);
+      }
+    );
   }
 
   addInQueue(floorNum: number, direction: Direction): void {

@@ -10,7 +10,7 @@ export class Mediator {
     }, {} as Topics);
   }
 
-  subscribe(topic: Topic, callback: TopicCallback): void {
+  subscribe<T>(topic: Topic, callback: TopicCallback<T>): void {
     this.topics[topic].add(callback);
   }
 
@@ -18,7 +18,7 @@ export class Mediator {
     this.topics[topic].delete(callback);
   }
 
-  publish(topic: Topic, payload?: unknown): void {
+  publish<T>(topic: Topic, payload?: T): void {
     for (const callback of Array.from(this.topics[topic])) {
       callback(payload);
     }
