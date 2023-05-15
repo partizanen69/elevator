@@ -16,6 +16,8 @@ export class Dispatcher {
   // It would be nice to add mediator instead of setState func
   private setFloors!: React.Dispatch<React.SetStateAction<Floors>>;
 
+  private stopSubscribers: Set<() => void> = new Set();
+
   constructor() {
     console.log(`Initialize ${Dispatcher.name}`);
   }
@@ -72,28 +74,36 @@ export class Dispatcher {
     return Boolean(this.timer);
   }
 
-  start(): void {
+  start(stopCb: () => void): boolean {
     if (!queueManager.size) {
       window.alert("There is nobody in queue");
-      return;
+      return false;
     }
 
     if (this.isRunning()) {
       window.alert("Emulation is already running");
-      return;
+      return false;
     }
+
+    this.stopSubscribers.add(stopCb);
     this.startTick();
+    return true;
   }
 
   private startTick(): void {
     this.timer = setTimeout(() => this.tick(), tickTimeMs);
   }
 
-  // TODO: think if it is private
-  stopEmulation(): void {
+  private stop(): void {
+    for (const stopCb of Array.from(this.stopSubscribers)) {
+      stopCb();
+    }
+    this.stopSubscribers = new Set();
+
     if (this.timer === null) {
       return;
     }
+
     clearTimeout(this.timer);
     this.timer = null;
   }
@@ -113,7 +123,7 @@ export class Dispatcher {
     // if all lifts are idle and there is nobody in the queue
     if (this.allIdle && !queueManager.size) {
       console.log("Queue is empty. Complete emulation");
-      this.stopEmulation();
+      this.stop();
     } else {
       console.log(`We are going to start new tick`);
       this.startTick();

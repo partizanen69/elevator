@@ -1,7 +1,7 @@
 import { shuffle } from "lodash";
 import { FLOORS_ARR, MAX_PERSONS_PER_FLOOR } from "./App.constants";
 import { Person } from "./App.types";
-import { Direction } from "./GoGoBtn/QueueManager.types";
+import { Direction } from "./core/QueueManager.types";
 
 export const getPersonDirection = (currentFloor: number, floorToGo: number): Direction => {
   return currentFloor < floorToGo ? Direction.up : Direction.down;

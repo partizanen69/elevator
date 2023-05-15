@@ -1,4 +1,4 @@
-import { Direction } from "./GoGoBtn/QueueManager.types";
+import { Direction } from "./core/QueueManager.types";
 import { getFloorsNotCurrent, getPersonDirection } from "./utils";
 
 describe("getPersonDirection", () => {

@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Floor, Floors } from "../App.types";
-import { queueManager } from "../GoGoBtn/QueueManager";
+import { queueManager } from "../core/QueueManager";
 
 type PersonsSpaceProps = {
   floor: Floor;

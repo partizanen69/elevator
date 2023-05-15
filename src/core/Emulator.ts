@@ -1,13 +1,13 @@
 import React from "react";
 import { FLOORS } from "../App.constants";
 import { Floors, LiftStatus, LiftView, Person } from "../App.types";
-import { dispatcher } from "../GoGoBtn/Dispatcher";
-import { queueManager } from "../GoGoBtn/QueueManager";
+import { dispatcher } from "../core/Dispatcher";
+import { queueManager } from "../core/QueueManager";
 import { generateRandomPerson, getPersonDirection } from "../utils";
+import { mediator } from "./Mediator";
+import { Topic } from "./Mediator.types";
 
 export class Emulator {
-  private doneSubscribers: Set<() => void> = new Set();
-
   private dynamicEmulationTimer: ReturnType<typeof setTimeout> | null = null;
 
   private floors: Floors = {};
@@ -25,26 +25,22 @@ export class Emulator {
     this.setFloors = setFloors;
   }
 
-  stopStaticEmulation(): void {
-    dispatcher.stopEmulation();
-    this.notifyDone();
-  }
-
-  stopDynamicEmulation(): void {
-    dispatcher.stopEmulation();
-    if (this.dynamicEmulationTimer) {
-      clearInterval(this.dynamicEmulationTimer);
-      this.dynamicEmulationTimer = null;
-    }
-    this.notifyDone();
-  }
-
   isRunning(): boolean {
     return dispatcher.isRunning() || Boolean(this.dynamicEmulationTimer);
   }
 
   startStaticEmulation() {
-    dispatcher.start();
+    const stopCallback = (): void => {
+      mediator.publish(Topic.EmulatorStop);
+    };
+
+    const started = dispatcher.start(stopCallback);
+
+    if (started) {
+      mediator.publish(Topic.EmulatorStart);
+    } else {
+      mediator.publish(Topic.EmulatorStop);
+    }
   }
 
   startDynamicEmulation({
@@ -74,8 +70,16 @@ export class Emulator {
     queueManager.flushQueue();
     queueManager.addInQueue(floorNum, getPersonDirection(floorNum, person.goingToFloor));
 
-    dispatcher.start();
-    this.emulateNewPersonAfterTimeout();
+    const started = dispatcher.start((): void => {
+      mediator.publish(Topic.EmulatorStop);
+    });
+
+    if (started) {
+      mediator.publish(Topic.EmulatorStart);
+      this.emulateNewPersonAfterTimeout();
+    } else {
+      mediator.publish(Topic.EmulatorStop);
+    }
   }
 
   addRandomPersonToRandomFloor(floorNum?: number): { person: Person; floorNum: number } {
@@ -96,7 +100,7 @@ export class Emulator {
     this.dynamicEmulationTimer = setTimeout(() => {
       if (!dispatcher.isRunning()) {
         console.log("Dispatcher completed with all passengers. Stopping dynamic emulation");
-        this.stopDynamicEmulation();
+        // this.stopDynamicEmulation();
         return;
       }
 
@@ -110,24 +114,6 @@ export class Emulator {
 
       this.emulateNewPersonAfterTimeout();
     }, 5000);
-  }
-
-  addDoneSubscriber(cb: () => void) {
-    this.doneSubscribers.add(cb);
-    console.log(
-      `${Emulator.name} added new done subscriber. Total subscribers: ${this.doneSubscribers.size}`
-    );
-  }
-  removeDoneSubscriber(cb: () => void) {
-    this.doneSubscribers.delete(cb);
-    console.log(
-      `${Emulator.name} removed done subscriber. Total subscribers: ${this.doneSubscribers.size}`
-    );
-  }
-  notifyDone() {
-    for (const sub of this.doneSubscribers) {
-      sub();
-    }
   }
 }
 

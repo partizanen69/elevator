@@ -1,7 +1,9 @@
 import { Button } from "antd";
 import { FC, useEffect, useState } from "react";
 import { Floors, LiftView } from "../App.types";
-import { emulator } from "../Emulator/Emulator";
+import { emulator } from "../core/Emulator";
+import { mediator } from "../core/Mediator";
+import { Topic } from "../core/Mediator.types";
 
 type GoDynamicBtnProps = {
   lifts: LiftView[];
@@ -14,12 +16,19 @@ export const GoDynamicBtn: FC<GoDynamicBtnProps> = ({ lifts, setLifts }) => {
   const [disabled, setDisabled] = useState<boolean>(false);
 
   useEffect(() => {
-    const cb = () => {
+    const reactToEmulatorStop = () => {
       setDisabled(false);
     };
-    emulator.addDoneSubscriber(cb);
+    mediator.subscribe(Topic.EmulatorStop, reactToEmulatorStop);
+
+    const reactToEmulatorStart = () => {
+      setDisabled(true);
+    };
+    mediator.subscribe(Topic.EmulatorStart, reactToEmulatorStart);
+
     return () => {
-      emulator.removeDoneSubscriber(cb);
+      mediator.unsubscribe(Topic.EmulatorStop, reactToEmulatorStop);
+      mediator.unsubscribe(Topic.EmulatorStart, reactToEmulatorStart);
     };
   }, []);
 
@@ -27,7 +36,6 @@ export const GoDynamicBtn: FC<GoDynamicBtnProps> = ({ lifts, setLifts }) => {
     <Button
       title="Emulate with all elevators empty on the ground floor and new random person added every 5 sec"
       onClick={() => {
-        setDisabled(true);
         emulator.startDynamicEmulation({ lifts, setLifts });
       }}
       disabled={disabled}

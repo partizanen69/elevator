@@ -1,7 +1,7 @@
 import { Button } from "antd";
 import { FC } from "react";
 import { Floors, LiftView } from "../App.types";
-import { queueManager } from "../GoGoBtn/QueueManager";
+import { queueManager } from "../core/QueueManager";
 import useGenStateBtn from "./hooks/useGenStateBtn";
 
 type GenStateBtnProps = {

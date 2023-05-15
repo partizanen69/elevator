@@ -1,15 +1,14 @@
 import { useMemo, useState } from "react";
 import { INITIAL_FLOORS, INITIAL_LIFT_POSITIONS } from "./App.constants";
 import "./App.css";
-import { emulator } from "./Emulator/Emulator";
 import { FloorElement } from "./Floor/Floor";
 import { GenStateBtn } from "./GenStateBtn/GenStateBtn";
-import { GoDynamicBtn } from "./GoDynamicBtn/GoDynamicBtn";
-import { dispatcher } from "./GoGoBtn/Dispatcher";
-import { GoGoBtn } from "./GoGoBtn/GoGoBtn";
 import { QueueOfFloors } from "./QueueOfFloors/QueueOfFloors";
-import { StopBtn } from "./StopBtn/StopBtn";
+import { GoDynamicBtn } from "./StartDynamicBtn/StartDynamicBtn";
+import { GoStaticBtn } from "./StartStaticBtn/StartStaticBtn";
 import { TopPanel } from "./TopPanel/TopPanel";
+import { dispatcher } from "./core/Dispatcher";
+import { emulator } from "./core/Emulator";
 
 function App() {
   const [lifts, setLifts] = useState(INITIAL_LIFT_POSITIONS);
@@ -30,9 +29,8 @@ function App() {
         <QueueOfFloors />
         <div className="mb-2 flex gap-x-2">
           <GenStateBtn setLifts={setLifts} setFloors={setFloors} />
-          <GoGoBtn setLifts={setLifts}></GoGoBtn>
+          <GoStaticBtn setLifts={setLifts}></GoStaticBtn>
           <GoDynamicBtn lifts={lifts} floors={floors} setLifts={setLifts} setFloors={setFloors} />
-          <StopBtn />
         </div>
         <div className="building flex flex-col">
           <TopPanel lifts={lifts} setLifts={setLifts} />

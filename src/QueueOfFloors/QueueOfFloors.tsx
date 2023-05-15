@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
-import { queueManager } from "../GoGoBtn/QueueManager";
-import { QueueItem } from "../GoGoBtn/QueueManager.types";
+import { queueManager } from "../core/QueueManager";
+import { QueueItem } from "../core/QueueManager.types";
 
 export const QueueOfFloors: FC = () => {
   const [queueItems, setQueueItems] = useState<QueueItem[]>([]);

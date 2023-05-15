@@ -2,7 +2,7 @@ import { Button, InputNumber } from "antd";
 import { FC, useState } from "react";
 import { FLOORS, MAX_PERSONS_PER_FLOOR } from "../App.constants";
 import { Floor, Floors } from "../App.types";
-import { queueManager } from "../GoGoBtn/QueueManager";
+import { queueManager } from "../core/QueueManager";
 import { getPersonDirection } from "../utils";
 
 type AddPersonModalProps = {

@@ -1,5 +1,5 @@
 import { Floors, LiftStatus, LiftView } from "./App.types";
-import { queueManager } from "./GoGoBtn/QueueManager";
+import { queueManager } from "./core/QueueManager";
 import { getPersonDirection } from "./utils";
 
 export const FLOORS = 15;
