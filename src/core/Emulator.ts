@@ -70,7 +70,7 @@ export class Emulator {
     queueManager.addInQueue(floorNum, getPersonDirection(floorNum, person.goingToFloor));
 
     const started = dispatcher.start((): void => {
-      mediator.publish(Topic.EmulatorStop);
+      this.stopEmulation();
     });
 
     if (started) {
