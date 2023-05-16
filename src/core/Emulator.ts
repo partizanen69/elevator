@@ -1,5 +1,5 @@
 import React from "react";
-import { FLOORS } from "../App.constants";
+import { FLOORS, TIMEOUT_ADD_NEW_PERSON } from "../App.constants";
 import { Floors, LiftStatus, LiftView, Person } from "../App.types";
 import { dispatcher } from "../core/Dispatcher";
 import { queueManager } from "../core/QueueManager";
@@ -116,7 +116,7 @@ export class Emulator {
       }
 
       this.emulateNewPersonAfterTimeout();
-    }, 5000);
+    }, TIMEOUT_ADD_NEW_PERSON);
   }
 
   private stopEmulation() {

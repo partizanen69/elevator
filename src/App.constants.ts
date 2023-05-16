@@ -10,6 +10,8 @@ export const MAX_PERSONS_PER_FLOOR = 10;
 
 export const MAX_PERSONS_PER_LIFT = 4;
 
+export const TIMEOUT_ADD_NEW_PERSON = 4000;
+
 // time for one step e.g. how long it will take for an elevator to pass one floor,
 // or how long it will take to unload passengers at destination floor
 export const tickTimeMs = 1000;

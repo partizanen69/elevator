@@ -1,5 +1,5 @@
 {
-  "homepage": "https://partizanen69.github.io/elevator/",
+  "homepage": "https://partizanen69.github.io/elevator",
   "name": "elevator1",
   "private": true,
   "version": "0.0.0",
@@ -9,7 +9,7 @@
     "tsc:w": "tsc -w",
     "test:w": "jest --watchAll",
     "build": "tsc && vite build",
-    "deploy": "gh-pages -d build",
+    "deploy": "gh-pages -d dist",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
