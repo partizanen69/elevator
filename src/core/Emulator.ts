@@ -100,13 +100,6 @@ export class Emulator {
 
   emulateNewPersonAfterTimeout() {
     this.timer = setTimeout(async () => {
-      // TODO: do something with this
-      if (!dispatcher.isRunning()) {
-        console.log("Dispatcher completed with all passengers. Stopping dynamic emulation");
-        // this.stopDynamicEmulation();
-        return;
-      }
-
       const { person, floorNum } = await this.addRandomPersonToRandomFloor();
       queueManager.addInQueue(floorNum, getPersonDirection(floorNum, person.goingToFloor));
 
